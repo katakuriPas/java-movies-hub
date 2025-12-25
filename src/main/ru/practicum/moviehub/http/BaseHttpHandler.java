@@ -12,7 +12,11 @@ import java.util.List;
 
 public abstract class BaseHttpHandler implements HttpHandler {
     protected static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
-    protected final Gson gson = new Gson();
+    protected final Gson gson;
+
+    protected BaseHttpHandler() {
+        this.gson = new Gson();
+    }
 
     protected void sendJson(HttpExchange exchange, int statusCode, String jsonBody) throws IOException {
         byte[] response = jsonBody.getBytes(StandardCharsets.UTF_8);

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.practicum.moviehub.model.Movie;
 import ru.practicum.moviehub.store.MoviesStore;
 
 import java.net.URI;
@@ -14,7 +15,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MoviesApiTest {
 
@@ -64,5 +65,52 @@ public class MoviesApiTest {
 
         String body = response.body().trim();
         assertEquals("[]", body, "Ожидался пустой JSON-массив");
+    }
+
+    @Test
+    void postMovie_invalidTitle_returns422WithError() throws Exception {
+        Movie inputMovie = new Movie("", 2020);
+        String jsonBody = gson.toJson(inputMovie);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE + "/movies"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+        assertEquals(422, response.statusCode(), "Ожидался статус 422 Unprocessable Entity");
+        assertTrue(response.body().contains("название не должно быть пустым"));
+    }
+
+    @Test
+    void deleteMovie_existingId_returns204() throws Exception {
+        Movie movie = store.save(new Movie("Titanic", 1997));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE + "/movies/" + movie.getId()))
+                .DELETE()
+                .build();
+
+        HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
+
+        assertEquals(204, response.statusCode());
+
+        // Проверим, что фильм удалён
+        assertNull(store.findById(movie.getId()));
+    }
+
+    @Test
+    void deleteMovie_nonExistingId_returns404() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE + "/movies/999999"))
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+        assertEquals(404, response.statusCode());
+        assertTrue(response.body().contains("Фильм не найден"));
     }
 }

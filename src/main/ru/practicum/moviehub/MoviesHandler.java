@@ -12,6 +12,7 @@ import java.util.List;
 
 public class MoviesHandler extends BaseHttpHandler {
     private final MoviesStore store;
+    private static final int YEAR_RANGE = 1888;
 
     public MoviesHandler(MoviesStore store) {
         this.store = store;
@@ -51,10 +52,10 @@ public class MoviesHandler extends BaseHttpHandler {
         String query = exchange.getRequestURI().getQuery();
         if (query != null && query.startsWith("year=")) {
             String yearParam = query.substring(5);
+            int year = Integer.parseInt(yearParam);
+            int currentYear = java.time.Year.now().getValue();
             try {
-                int year = Integer.parseInt(yearParam);
-                int currentYear = java.time.Year.now().getValue();
-                if (year < 1888 || year > currentYear + 1) {
+                if (year < YEAR_RANGE || year > currentYear + 1) {
                     sendError(exchange, 400, "Некорректный параметр запроса — 'year'");
                     return;
                 }
@@ -115,7 +116,7 @@ public class MoviesHandler extends BaseHttpHandler {
                 valid = false;
             }
 
-            if (year < 1888 || year > currentYear + 1) {
+            if (year < YEAR_RANGE || year > currentYear + 1) {
                 errors.add("год должен быть между 1888 и " + (currentYear + 1));
                 valid = false;
             }
