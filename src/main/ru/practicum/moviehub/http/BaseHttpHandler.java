@@ -14,8 +14,8 @@ public abstract class BaseHttpHandler implements HttpHandler {
     protected static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
     protected final Gson gson;
 
-    protected BaseHttpHandler() {
-        this.gson = new Gson();
+    protected BaseHttpHandler(Gson gson) {
+        this.gson = gson;
     }
 
     protected void sendJson(HttpExchange exchange, int statusCode, String jsonBody) throws IOException {

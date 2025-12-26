@@ -1,5 +1,6 @@
 package ru.practicum.moviehub;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
 import ru.practicum.moviehub.http.BaseHttpHandler;
@@ -9,12 +10,14 @@ import ru.practicum.moviehub.store.MoviesStore;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.time.Year;
 
 public class MoviesHandler extends BaseHttpHandler {
     private final MoviesStore store;
     private static final int YEAR_RANGE = 1888;
 
-    public MoviesHandler(MoviesStore store) {
+    public MoviesHandler(MoviesStore store, Gson gson) {
+        super(gson);
         this.store = store;
     }
 
@@ -53,7 +56,7 @@ public class MoviesHandler extends BaseHttpHandler {
         if (query != null && query.startsWith("year=")) {
             String yearParam = query.substring(5);
             int year = Integer.parseInt(yearParam);
-            int currentYear = java.time.Year.now().getValue();
+            int currentYear = Year.now().getValue();
             try {
                 if (year < YEAR_RANGE || year > currentYear + 1) {
                     sendError(exchange, 400, "Некорректный параметр запроса — 'year'");
@@ -103,10 +106,10 @@ public class MoviesHandler extends BaseHttpHandler {
             // Валидация
             String title = movie.getTitle();
             int year = movie.getYear();
-            int currentYear = java.time.Year.now().getValue();
+            int currentYear = Year.now().getValue();
 
             boolean valid = true;
-            java.util.List<String> errors = new java.util.ArrayList<>();
+            List<String> errors = new java.util.ArrayList<>();
 
             if (title == null || title.trim().isEmpty()) {
                 errors.add("название не должно быть пустым");
